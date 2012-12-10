@@ -1,0 +1,51 @@
+Задание
+=======
+
+Позаимствовано (с изменениями) с http://www.rubyquiz.com/quiz107.html
+
+Решить пазл: найти указанные слова в таблице букв букв (letter soup).
+
+Слова даются в первой строке файла после ключевого слова 'words:', списком через пробел.
+Слова в таблице могут располагаться
+* по горизонтали (слева направо или справа налево)
+* по вертикали (сверху вниз)
+* по диагонали (сверху вниз влево или вправо)
+
+Поиск слов необходимо осуществлять без учета регистра.
+
+пример файла с заданием (puzzle.1.txt)
+
+words: ruby daN rocks Matz bray rock korg TUP mAt EM
+U E W R T R B H C D
+C X G Z U W R Y E R
+R O C K S B A U C U
+S F K F M T Y S G E
+Y S O O U N M Z I M
+T C G P R T I D A N
+H Z G H Q G W T U V
+H Q M N D X Z B S T
+N T C L A T N B C E
+Y B U R P Z U X M S
+
+пример файла с ответом (puzzle.1.gold)
+
++ + + R + + B + + +
++ + + + U + R + + +
+R O C K S B A + + +
++ + K + + T Y + + E
++ + + O U + + + + M
++ + + P R + + D A N
++ + + + + G + T + +
++ + + + + + Z + + +
++ + + + + + + + + E
+Y B U R + + + + M +
+
+вариант решения: wordsearch.rb
+	> wordsearch.rb puzzle.1.txt
+# см. puzzle.1.gold
+
+TODO
+? что предпочитать в случае пересекающихся слов
+	ruby vs. bypass
+	bypass vs. ass
+
