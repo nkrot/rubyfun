@@ -2,7 +2,8 @@
 # http://www.rubyquiz.com/quiz44.html
 #
 # TODO:
-# 1. does not find the shortest path between words
+# 1. should find the shortest path between words :(
+#    the current implementation finds the path of 360 words between duck and ruby
 
 class WordChains
   attr_accessor :verbose
@@ -37,8 +38,6 @@ class WordChains
     stack = [sword.to_sym]
     chain = []
 
-    add_path("_", sword)
-
     while !stack.empty?
       sword = stack.shift
 
@@ -56,14 +55,13 @@ class WordChains
         end
 
         mark_as_visited(mask)
-        mark_as_visited(sword)
 
         each_word_by_mask(mask) do |word|
-          unless already_visited?(word)
-#            mark_as_visited(word)
-            stack.unshift word
-            add_path(sword, word)
+          if already_visited?(word) || word == sword
+            next
           end
+          stack.unshift word
+          add_path(sword, word)
         end
       end
     end
@@ -84,18 +82,18 @@ class WordChains
 
   def add_to_dict(word)
     _word = word.to_sym
-    each_mask(word) {|mask|
+    each_mask(word) do |mask|
       unless @dict[mask].include?(_word)
         @dict[mask] << _word
       end
-    }
+    end
   end
 
   ####################################################################
 
   def add_path(src, trg)
     if @paths.key?(trg)
-      raise "Oh, no this should not have happened: '#{src}' instead of '#{@paths[trg]}'?"
+      raise "Oh, no this should not have happened: '#{trg}' -> '#{src}' instead of '#{@paths[trg]}'? "
     end
     @paths[trg] = src
   end
@@ -191,9 +189,11 @@ end
 
 if __FILE__ == $0
   wch = WordChains.new
-  wch.verbose = true
-#  chain = wch.process("rrrr", "ruby") #=> []
+  wch.verbose = !true
+
   chain = wch.process("duck", "ruby")
   puts chain.inspect
-#  wch.process("rube", "ruby")
+
+  chain = wch.process("rrrr", "ruby")
+  puts chain.inspect
 end
