@@ -1,6 +1,8 @@
-
+#
 # http://www.rubyquiz.com/quiz44.html
 #
+# TODO:
+# 1. does not find the shortest path between words
 
 class WordChains
   attr_accessor :verbose
@@ -9,20 +11,73 @@ class WordChains
     @verbose = false
 
     @dict = Hash.new {|h,k| h[k] = []}
-#    File.readlines("words.4").each do |word|
-#      add_to_dict(word.chomp)
-#    end
     IO.foreach("/usr/share/dict/words") do |line|
       line.chomp!
-      if line.length == 4
+      if line =~ /^[[:alpha:]]{4}$/
         add_to_dict(line.downcase)
       end
     end
 
 #    @dict.each {|k,v| puts "#{k.inspect}=>#{v.inspect}"}
 
+    @paths = Hash.new #{|h,k| h[k]=[]}
     @seen_items = {}
-    @level = 0
+#    @level = 0
+  end
+
+  ####################################################################
+  # startword, endword
+
+  def process(sword, eword)
+    reset
+
+    verboser "\nFinding steps from '#{sword}' to '#{eword}'"
+
+    eword = eword.to_sym
+    stack = [sword.to_sym]
+    chain = []
+
+    add_path("_", sword)
+
+    while !stack.empty?
+      sword = stack.shift
+
+      if sword == eword
+        chain = restore_path(sword)
+        break
+      end
+
+      each_mask(sword) do |mask|
+#        verboser @seen_items.inspect
+
+        if already_visited?(mask)
+          verboser "Skipping: #{mask}"
+          next
+        end
+
+        mark_as_visited(mask)
+        mark_as_visited(sword)
+
+        each_word_by_mask(mask) do |word|
+          unless already_visited?(word)
+#            mark_as_visited(word)
+            stack.unshift word
+            add_path(sword, word)
+          end
+        end
+      end
+    end
+
+    return chain 
+  end
+
+  ####################################################################
+
+  private
+
+  def reset
+    @paths.clear
+    @seen_items.clear
   end
 
   ####################################################################
@@ -37,41 +92,27 @@ class WordChains
   end
 
   ####################################################################
-  # startword, endword
 
-  def process(sword, eword)
-    verboser "\nFinding steps from '#{sword}' to '#{eword}'"
-
-    eword = eword.to_sym
-    stack = [sword.to_sym]
-
-    while !stack.empty?
-      sword = stack.shift
-
-      if sword == eword
-        puts "Found!"
-        return sword
-      end
-
-      each_mask(sword) do |mask|
-#        verboser @seen_items.inspect
-
-        if already_visited?(mask)
-          verboser "Skipping: #{mask}"
-          next
-        end
-
-        mark_as_visited(mask)
-
-        each_word_by_mask(mask) do |word|
-          unless already_visited?(word)
-            mark_as_visited(word)
-            stack.unshift word
-          end
-        end
-      end
+  def add_path(src, trg)
+    if @paths.key?(trg)
+      raise "Oh, no this should not have happened: '#{src}' instead of '#{@paths[trg]}'?"
     end
+    @paths[trg] = src
   end
+
+  ####################################################################
+
+  def restore_path(trg)
+    path = []
+    while @paths.key?(trg)
+      path << trg.to_s
+      trg = @paths[trg]
+    end
+    path << trg.to_s
+    path.reverse
+  end
+
+  ####################################################################
 
   # recursive implementation sucks: Stack level too deep
 #  def process(sword, eword)
@@ -105,8 +146,8 @@ class WordChains
 
   ####################################################################
 
-  def already_visited?(mask)
-    @seen_items.include?(mask)
+  def already_visited?(item)
+    @seen_items.include?(item) || @paths.key?(item)
   end
 
   def mark_as_visited(val)
@@ -151,6 +192,8 @@ end
 if __FILE__ == $0
   wch = WordChains.new
   wch.verbose = true
-  puts wch.process("duck", "ruby")
+#  chain = wch.process("rrrr", "ruby") #=> []
+  chain = wch.process("duck", "ruby")
+  puts chain.inspect
 #  wch.process("rube", "ruby")
 end
