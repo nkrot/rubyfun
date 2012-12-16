@@ -26,6 +26,7 @@
 # 3. should fill in the board in non-linear order but like this:
 #    first row, first column, first diagonal
 #    second row, second column, second diagonal
+# 4. should accept partial solution as input and continue it
 
 class MagicSquare
   attr_accessor :board
@@ -295,7 +296,8 @@ end
 ######################################################################
 
 if __FILE__ == $0
-  square = MagicSquare.new(5)
+  # NOTE: it will run forever for 5x5 board: 25! permutations
+  square = MagicSquare.new(3)
   square.solve
   puts "Solved? -- #{square.solved?}"
   puts "Magic? -- #{square.solution.magic?}"
