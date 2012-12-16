@@ -8,21 +8,43 @@ class TestMagicSquare < Test::Unit::TestCase
   @@solutions = \
   [
    MagicSquare::Board.new([2,7,6,  9,5,1,  4,3,8]),
-   MagicSquare::Board.new([4,3,8,  9,5,1,  2,7,6])
+   MagicSquare::Board.new([4,3,8,  9,5,1,  2,7,6]),
+   MagicSquare::Board.new([1,2,15,16,  12,14,3,5,  13,7,10,4,  8,11,6,9])
   ]
+
+  @@wrong_solutions = \
+  [
+   # bad diagonals
+   MagicSquare::Board.new([1,5,9,  6,7,2,   8,3,4])
+  ]
+
+  ####################################################################
 
   def self.solutions
     @@solutions
   end
 
-  def test_new_with_size
-    square = MagicSquare.new(3)
+  def self.wrong_solutions
+    @@wrong_solutions
   end
 
-  def test_solve_empty
+#  def test_new_with_size
+#    square = MagicSquare.new(3)
+#  end
+
+  def test_solve_empty_3x3
     square = MagicSquare.new(3)
     square.solve
     assert square.solved?
+    assert_equal @@solutions.first, square.solution
+  end
+
+  def test_solve_empty_4x4
+    square = MagicSquare.new(4)
+    puts "Solving 4x4 board. It may take a while"
+    square.solve
+    assert square.solved?
+    assert_equal @@solutions[2], square.solution
   end
 
   def test_solve_partial
@@ -124,5 +146,12 @@ etalon = "\
     board = MagicSquare::Board.new(et_rows.flatten)
     assert !board.magic?
   end
+
+  def test_partially_magic?
+    TestMagicSquare::wrong_solutions.each do |board|
+      assert !board.partially_magic?(board.ncells-1)
+    end
+  end
+
 end
 
