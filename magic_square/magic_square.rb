@@ -172,11 +172,11 @@ class MagicSquare
     # create template (on the left) that once filled in with values will
     # look like solved board (on the right)
     #
-    #   %s | %s | %s       1 | 2 | 3
+    #   %s | %s | %s       4 | 3 | 8
     #   ---+---+---       ---+---+---
-    #   %s | %s | %s       4 | 5 | 6
+    #   %s | %s | %s       9 | 5 | 1
     #   ---+---+---       ---+---+---
-    #   %s | %s | %s       7 | 8 | 9
+    #   %s | %s | %s       2 | 7 | 6
 
     def create_template
       row = "\n %s" + " | %s" * (@ncols-1)
@@ -188,7 +188,7 @@ class MagicSquare
 end
 
 if __FILE__ == $0
-  square = MagicSquare.new(3) # NOTE: it takes a goooood white to solve 4x4
+  square = MagicSquare.new(3) # NOTE: it takes a goooood while to solve 4x4
   square.solve
   puts "Solved? -- #{square.solved?}"
   puts square.solution.to_s
