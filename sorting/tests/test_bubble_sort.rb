@@ -32,4 +32,31 @@ class TestBubbleSort < Test::Unit::TestCase
     assert sorted, @bs.sort(sorted)
   end
 
+  def test_sort_desc_numbers
+    before = [25,13,31,68,2,10,9,-3]
+    sorted = [68,31,25,13,10,9,2,-3]
+
+    assert_equal sorted, @bs.sort_desc(before)
+  end
+
+  def test_sort_asc_numbers
+    before = [25,13,31,68,2,10,9,-3]
+    sorted = [-3,2,9,10,13,25,31,68]
+
+    assert_equal sorted, @bs.sort_asc(before)
+  end
+
+
+  def test_sort_by_evenness
+    before = [25,13,31,68,2,10,9,-3]
+    # the order among odd numbers not altered
+    sorted = [68,2,10,  25,13,31,9,-3]
+
+    bs = BubbleSort.new
+    bs.sorts_before = Proc.new {|a,b| a.even? && b.odd?}
+#    bs.sorts_before = Proc.new {|a,b| a.even?} # try me
+
+    assert_equal sorted, bs.sort_asc(before)
+  end
+    
 end
