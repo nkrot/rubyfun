@@ -7,8 +7,8 @@ class BubbleSort
   attr_accessor :sorts_before, :sorts_after
 
   def initialize
-    @sorts_before = Proc.new{|a,b| a < b}
-    @sorts_after  = Proc.new{|a,b| a > b}
+    @sorts_before = Proc.new{|a,b| a <= b}
+    @sorts_after  = Proc.new{|a,b| a >= b}
   end
 
   def sort(data)
@@ -29,20 +29,33 @@ class BubbleSort
   def sort_bs(arr, comparer)
     res = arr.dup
     
+    _c = 0 # number of comparisons
     last = res.length-1
-    0.upto(last) do |i|
-      0.upto(last) do |j|
-        if comparer.call(res[i], res[j])
-          res[i], res[j] = res[j], res[i]
+
+    explain "Initial: #{res.inspect}"
+
+    last.times do
+      1.upto(last) do |i|
+        _c += 1
+        unless comparer.call(res[i-1], res[i])
+          res[i-1], res[i] = res[i], res[i-1]
+          explain "Swapped #{res[i]} <-> #{res[i-1]}: #{res.inspect}"
         end
       end
     end
 
+    explain "Number of comparisons: #{_c}"
     res
   end
 
 #  def sorts_before?(a,b)
 #    a < b
 #  end
+
+  def explain msg
+    if false
+      puts msg
+    end
+  end
 end
 
