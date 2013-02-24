@@ -24,18 +24,18 @@ class TestBubbleSort < Test::Unit::TestCase
   def test_sort_inverted
     sorted  = [-3,2,9,10,13,25,31,68]
     inverted = sorted.reverse
-    assert sorted, @bs.sort(inverted)
+    assert_equal sorted, @bs.sort(inverted)
   end
 
   def test_sort_same_numbers
     sorted  = [1,1,1,1]
-    assert sorted, @bs.sort(sorted)
+    assert_equal sorted, @bs.sort(sorted)
   end
 
   def test_sort_almost_sorted_array
     before  = [2,3,4,5,1]
     sorted  = [1,2,3,4,5]
-    assert sorted, @bs.sort(before)
+    assert_equal sorted, @bs.sort(before)
   end
 
   def test_sort_desc_numbers
