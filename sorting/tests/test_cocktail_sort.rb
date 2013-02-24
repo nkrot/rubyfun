@@ -3,7 +3,7 @@
 require 'test/unit'
 require '../lib/cocktail_sort'
 
-class TestBubbleSort < Test::Unit::TestCase
+class TestCocktailSort < Test::Unit::TestCase
 
   def setup
     @sorter = CocktailSort.new
@@ -24,18 +24,18 @@ class TestBubbleSort < Test::Unit::TestCase
   def test_sort_inverted
     sorted  = [-3,2,9,10,13,25,31,68]
     inverted = sorted.reverse
-    assert sorted, @sorter.sort(inverted)
+    assert_equal sorted, @sorter.sort(inverted)
   end
 
   def test_sort_same_numbers
     sorted  = [1,1,1,1]
-    assert sorted, @sorter.sort(sorted)
+    assert_equal sorted, @sorter.sort(sorted)
   end
 
   def test_sort_almost_sorted_array
     before  = [2,3,4,5,1]
     sorted  = [1,2,3,4,5]
-    assert sorted, @sorter.sort(before)
+    assert_equal sorted, @sorter.sort(before)
   end
 end
 
