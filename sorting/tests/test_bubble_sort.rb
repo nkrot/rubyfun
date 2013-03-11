@@ -80,4 +80,34 @@ class TestBubbleSort < Test::Unit::TestCase
 
     assert_equal sorted, bs.sort_asc(before)
   end
+
+  def test_sort_with_block__numbers
+    # should behave equally
+    bs1 = BubbleSort.new
+    bs2 = BubbleSort2.new
+
+    before = [25,13,31,68,2,10,9,-3]
+    sorted_asc = [-3,2,9,10,13,25,31,68]
+    sorted_desc = sorted_asc.reverse
+
+    # BubbleSort
+    assert_equal sorted_asc,  bs1.sort(before) {|a,b| a < b }
+    assert_equal sorted_desc, bs1.sort(before) {|a,b| a > b }
+    assert_equal sorted_desc, bs1.sort(before) {|a,b| b < a }
+    # BubbleSort2
+    assert_equal sorted_asc,  bs1.sort(before) {|a,b| a < b }
+    assert_equal sorted_desc, bs1.sort(before) {|a,b| a > b }
+    assert_equal sorted_desc, bs1.sort(before) {|a,b| b < a }
+
+    # without explicit block, assume ascending order
+    assert_equal sorted_asc,  bs1.sort(before)
+    assert_equal sorted_asc,  bs2.sort(before)
+  end
+
+  def test_sort_with_block__strings_by_length
+    strings = %w[I love tagging and parsing such tiny sentences]
+    sorted  = %w[sentences tagging parsing tiny love such and I]
+
+    assert_equal sorted, @bs.sort(strings) {|a,b| a.length > b.length}
+  end
 end
