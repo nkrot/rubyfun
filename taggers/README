@@ -1,0 +1,29 @@
+programming assignment on tagging from the MOOC  https://class.coursera.org/nlangp-001/class
+trigram tagger using Viterbi algorithm
+
+classes unigram_data and trigram_data use prebuilt resource with counts:
+
+296 3-GRAM * I-GENE O
+11967 3-GRAM O O STOP
+13 2-GRAM I-GENE STOP
+13047 2-GRAM * O
+315457 2-GRAM O O
+749 2-GRAM * I-GENE
+13796 2-GRAM * *
+32 WORDTAG O consists
+15 WORDTAG O cartilage
+4 WORDTAG I-GENE disease
+8781 WORDTAG O _RARE_
+8732 WORDTAG I-GENE _RARE_
+
+where:
+ * stands fake 1st word
+ STOP stands for fake last word
+ _RARE_ replaces all words with that occur < 5 times in the training corpus
+
+
+TODO:
+1. scripts for preparing such a stat resource
+
+BUGS:
+1. unknown words produce zero values
