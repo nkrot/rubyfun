@@ -34,13 +34,12 @@ class TrigramData
     compute_probabilities
   end
 
-  # ct  - current tag
   # ppt - preprevious tag
   # pt  - previous tag
-  # the order of arguments corresponds to the math expression
-  #  q(ct|ppt,pt)
-  # current tag conditioned on two previous 
-  def prob_of(ct,ppt,pt)
+  # ct  - current tag
+  # the order of arguments does not correspond to the math expression
+  #  q(ct|ppt,pt) -- current tag conditioned on two previous 
+  def prob_of(ppt,pt,ct)
     @trigram_probs[[ppt,pt,ct]]
   end
 
