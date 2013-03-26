@@ -24,6 +24,16 @@ where:
 
 TODO:
 1. scripts for preparing such a stat resource
+2. get rid of script level methods w_tags, wt_prob in bin/trigram_tagger
+3. Viterbi should not define START and STOP but use them from either Unigram or Trigram or some common component
+    TrigramData::STOP, TrigramData::START
+4. Morphotype should be moved into Unigram. to keep the possibility to configure morphotype
+    (a) either Morphotype is created outside of UnigramData and then passed to UnigramData
+	(b) or Morphotype is instantiated in UnigramData and configured
+		@unigrams.morphotype.use_rare = true
+		@unigrams.morphotype.use_types_of_rare = true
+5. how about merging unigram and trigram resources into a single stat resource with
+   apropriate methods for get_trigram_prob, get_wt_prob
 
 BUGS:
 1. unknown words produce zero values

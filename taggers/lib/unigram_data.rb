@@ -3,6 +3,11 @@ class UnigramData
   # pseudo word, replaces any rare word
   # TODO: duplicated in morphotype.rb
   RARE = "_RARE_"
+  # special symbols for the start and end of the sentence
+  # TODO: actually, do not occur in unigram data, but only
+  # in trigram data
+  START = "*"
+  STOP  = "STOP"
 
   def initialize
 
@@ -28,7 +33,13 @@ class UnigramData
 
     @tagset = []
     @unigram_probs = {}
+
+    # converter to _RARE_ or one of other classes
+    @morphotype = nil
   end
+
+#  def use_class_of_rare(klass)
+#  end
 
   def load_counts_from_file(fname)
     IO.foreach(fname) { |line|
@@ -60,7 +71,9 @@ class UnigramData
   alias prob_with_tag prob_of
 
   def tags_of(word)
-    if @unigram_probs.key?(word)
+    if word == START || word == STOP
+      [word]
+    elsif @unigram_probs.key?(word)
       @unigram_probs[word].keys
     end
   end

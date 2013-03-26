@@ -48,6 +48,8 @@ file_with_counts = ARGV.shift
 ######################################################################
 
 m = Morphotype.new
+#m.use_class_of_rare = :single #:multi, :none
+#@unigrams.morphotype = m
 
 case @options[:mode] 
 when :rare
@@ -71,35 +73,24 @@ end
 
 ######################################################################
 
-def tags_of(word)
-  if word == "*" || word == TrigramData::STOP
-    [word]
-  else
-    # TODO: with many morphological classes, should the tags
-    # be looked up for a single morphological class (ALLCAPS, NUMERIC),
-    # instead of assigning all possible tags?
-    # For example, verbs can not have numbers, therefore can not be NUMERIC
-    @unigrams.tags_of(word) || @unigrams.all_tags
-  end
-end
+vit = Viterbi.new
 
-######################################################################
+vit.w_tags = lambda {|word|
+  # TODO: with many morphological classes, should the tags
+  # be looked up for a every morphological class (ALLCAPS, NUMERIC),
+  # instead of assigning *all* possible tags?
+  # For example, verbs can not have numbers, therefore can not be NUMERIC
+  @unigrams.tags_of(word) || @unigrams.all_tags
+}
 
-def wt_prob(word, tag)
+vit.wt_prob = lambda {|word,tag|
   # look up word or its class (_RARE_, _NUMERIC_, _ALLCAPS_, etc)
   @unigrams.prob_of(word, tag) \
   || @unigrams.prob_of(type_of_rare(word), tag)
-end
-
-######################################################################
-
-vit = Viterbi.new
-
-vit.w_tags = lambda {|word| tags_of(word)}
-
-vit.wt_prob = lambda {|word,tag| wt_prob(word, tag)}
+}
 
 vit.ttt_prob = lambda {|pptag, ptag, tag|
+  # TODO: fix the order of tags to be more natural (pptag, ptag, tag)
   @trigrams.prob_of(tag, pptag, ptag) # q(v|w,u)
 }
 
