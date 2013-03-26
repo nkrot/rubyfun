@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
 # # #
-# USAGE: ThisScript gene.train.rare.counts gene.test
+#
 #
 
 require 'optparse'
@@ -12,7 +12,7 @@ require 'viterbi'
 
 @options = {
   :verbose => false,
-  :mode => :rare
+  :mode => :single
 }
 
 OptionParser.new do |opts|
@@ -37,30 +37,14 @@ end.parse!
 
 file_with_counts = ARGV.shift
 
-@unigrams = UnigramData.new
-@unigrams.load_counts_from_file file_with_counts
+unigrams = UnigramData.new
+unigrams.load_counts_from_file file_with_counts
+unigrams.morphotype = Morphotype.new(@options[:mode])
 
-@trigrams = TrigramData.new
+trigrams = TrigramData.new
 # loading counts from file and computing them from corpus gives different values
-@trigrams.load_counts_from_file file_with_counts
+trigrams.load_counts_from_file file_with_counts
 #trigrams.learn_from_corpus file_with_counts # ex: gene.train.rare
-
-######################################################################
-
-m = Morphotype.new
-#m.use_class_of_rare = :single #:multi, :none
-#@unigrams.morphotype = m
-
-case @options[:mode] 
-when :rare
-  @class_of_rare = lambda {|word| m.rare}
-when :multi
-  @class_of_rare = lambda {|word| m.type_of(word) || m.rare }
-end
-
-def type_of_rare(word)
-  @class_of_rare.call(word)
-end
 
 ######################################################################
 
@@ -80,18 +64,16 @@ vit.w_tags = lambda {|word|
   # be looked up for a every morphological class (ALLCAPS, NUMERIC),
   # instead of assigning *all* possible tags?
   # For example, verbs can not have numbers, therefore can not be NUMERIC
-  @unigrams.tags_of(word) || @unigrams.all_tags
+  unigrams.tags_of(word) || unigrams.all_tags
 }
 
 vit.wt_prob = lambda {|word,tag|
   # look up word or its class (_RARE_, _NUMERIC_, _ALLCAPS_, etc)
-  @unigrams.prob_of(word, tag) \
-  || @unigrams.prob_of(type_of_rare(word), tag)
+  unigrams.prob_of(word, tag)
 }
 
 vit.ttt_prob = lambda {|pptag, ptag, tag|
-  # TODO: fix the order of tags to be more natural (pptag, ptag, tag)
-  @trigrams.prob_of(tag, pptag, ptag) # q(v|w,u)
+  trigrams.prob_of(pptag, ptag, tag) # q(tag|pptag,ptag)
 }
 
 each_sentence do |words|

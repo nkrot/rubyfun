@@ -9,6 +9,8 @@ class UnigramData
   START = "*"
   STOP  = "STOP"
 
+  attr_writer :morphotype
+
   def initialize
 
     # @wt_counts = {
@@ -38,9 +40,6 @@ class UnigramData
     @morphotype = nil
   end
 
-#  def use_class_of_rare(klass)
-#  end
-
   def load_counts_from_file(fname)
     IO.foreach(fname) { |line|
       line.chomp!
@@ -55,6 +54,11 @@ class UnigramData
     compute_probabilities
   end
 
+  def morphotype
+    # start on request
+    @morphotype ||= Morphotype.new
+  end
+
   # returns a hash with tags (in keys) and probabilites (in values)
   #  { tag1 => prob1, tag2 => prob2 }
   def probs_of(word)
@@ -65,6 +69,8 @@ class UnigramData
 #    puts "prob_of(#{word}, #{tag})"
     if @unigram_probs[word]
       @unigram_probs[word][tag]
+    else
+      prob_of(morphotype.type_of_rare(word), tag)
     end
   end
 
