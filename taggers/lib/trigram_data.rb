@@ -43,6 +43,12 @@ class TrigramData
     @trigram_probs[[ppt,pt,ct]]
   end
 
+  def dump
+    @trigram_probs.each do |(pptag,ptag,tag), prob|
+      puts "q(tag|pptag,ptag)=q(#{tag}|#{pptag},#{ptag})=#{prob}"
+    end
+  end
+
   ####################################################################
   # read tagged corpus and collect tag counts
 
@@ -142,4 +148,12 @@ class TrigramData
       @trigram_probs [tritags] = count.to_f / @tag_bigrams[t2b(tritags)].to_f
     end
   end
+end
+
+if __FILE__ == $0
+  # USAGE: trigram_data.rb gene.train.rare.counts
+  trigrams = TrigramData.new
+  trigrams.load_counts_from_file ARGV[0]
+
+  trigrams.dump
 end
