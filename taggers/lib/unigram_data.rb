@@ -105,6 +105,14 @@ class UnigramData
     @tagset.dup
   end
 
+  def dump
+    @unigram_probs.each do |word, tagdata|
+      tagdata.each do |tag, prob|
+        puts "e(word|tag)=e(#{word}|#{tag})=#{prob}"
+      end
+    end
+  end
+
   ####################################################################
   private
   ####################################################################
@@ -119,4 +127,12 @@ class UnigramData
       end
     end
   end
+end
+
+if __FILE__ == $0
+  # USAGE: unigram_data.rb gene.train.rare.counts
+  unigrams = UnigramData.new
+  unigrams.load_counts_from_file ARGV[0]
+
+  unigrams.dump
 end
