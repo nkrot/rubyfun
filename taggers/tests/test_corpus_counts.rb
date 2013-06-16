@@ -33,6 +33,30 @@ describe CorpusCounts do
     @cc.tag_unigram_counts["time VB"].must_equal 0
   end
 
-  
+  it "can learn tag bigrams from a line" do
+    sent = @tagged_sentences.first
+    @cc.count_tag_bigrams sent
+    @cc.tag_bigram_counts["#{CorpusCounts::START} JJ"].must_equal 1
+    @cc.tag_bigram_counts["NN IN"].must_equal 2
+    @cc.tag_bigram_counts["JJ VBD"].must_equal 0
+  end  
+
+  it "can learn gappy tag bigrams from a line" do
+    sent = @tagged_sentences.first
+    @cc.count_tag_bigrams sent, gap=1
+    @cc.tag_bigram_counts["NN IN"].must_equal 0
+    @cc.tag_bigram_counts["JJ VBD"].must_equal 1
+  end  
+
+  it "can learn tag trigrams from a line" do
+    sent = @tagged_sentences.first
+    @cc.count_tag_trigrams sent
+    @cc.tag_trigram_counts["JJ NNS VBD"].must_equal 1
+    @cc.tag_trigram_counts["JJ NN ."].must_equal 1
+    @cc.tag_trigram_counts.length.must_equal 12
+  end  
+
+  it "can learn unigrams from a text" #oops
+
 end
 
