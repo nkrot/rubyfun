@@ -1,17 +1,25 @@
 
 class CorpusCounts
-  START = "_START_"
-  STOP  = "_STOP_"
+  START = "@START@"
+  STOP  = "@STOP@"
 
   attr_accessor :tag_unigram_counts
   attr_accessor :tag_bigram_counts
   attr_accessor :tag_trigram_counts
 
   def initialize
-    @tag_unigram_counts = Hash.new {|h,k| h[k] = 0}
-    @word_tag_unigram_counts = Hash.new {|h,k| h[k] = 0}
-    @tag_bigram_counts = Hash.new {|h,k| h[k] = 0}
-    @tag_trigram_counts = Hash.new {|h,k| h[k] = 0}
+    @tag_unigram_counts      = new_hash
+
+    @tag_bigram_counts       = new_hash
+    @tag_skip1_bigram_counts = new_hash
+
+    @tag_trigram_counts      = new_hash
+
+    @word_tag_unigram_counts = new_hash
+  end
+
+  def new_hash
+    Hash.new {|h,k| h[k] = 0}
   end
 
   def learn_from_file(*fnames)
@@ -34,26 +42,28 @@ class CorpusCounts
   def learn_from_line line
     tokens = tokenize(line)
 
-    count_tag_unigrams tokens
-    count_word_tag_unigrams tokens
+    count_tag_unigrams      @tag_unigram_counts, tokens
+    count_word_tag_unigrams @word_tag_unigram_counts, tokens
 
-    count_tag_bigrams tokens
-    count_tag_trigrams tokens
+    count_tag_bigrams       @tag_bigram_counts,  tokens
+    count_tag_trigrams      @tag_trigram_counts, tokens
 
-    count_tag_bigrams tokens, gap=1
+    count_tag_bigrams       @tag_skip1_bigram_counts, tokens, gap=1
   end
 
-  def count_tag_unigrams wts
+  def count_tag_unigrams counts, wts
     wts = tokenize(wts)
-    wts.each {|w,t| @tag_unigram_counts[t] += 1}
+    wts.each {|w,t| counts[t] += 1}
+    counts
   end
 
-  def count_word_tag_unigrams wts
+  def count_word_tag_unigrams counts, wts
     wts = tokenize(wts)
-    wts.each {|w,t| @tag_unigram_counts["#{w} #{t}"] += 1}
+    wts.each {|w,t| counts["#{w} #{t}"] += 1}
+    counts
   end
 
-  def count_tag_bigrams wts, gap=0
+  def count_tag_bigrams counts, wts, gap=0
     wts = tokenize(wts)
     # extract tags only
     tags = wts.map {|w,t| t}
@@ -63,11 +73,12 @@ class CorpusCounts
     # collect bigrams or gappy bigrams
     (0+gap).upto(tags.length-1) do |i|
       bigram = tags[i-1-gap] + " " + tags[i]
-      @tag_bigram_counts[bigram] += 1
+      counts[bigram] += 1
     end
+    counts
   end
 
-  def count_tag_trigrams wts
+  def count_tag_trigrams counts, wts
     wts = tokenize(wts)
     # extract tags only
     tags = wts.map {|w,t| t}
@@ -77,33 +88,56 @@ class CorpusCounts
     # collect trigrams
     2.upto(tags.length-1) do |i|
       trigram = tags[i-2,3].join(' ')
-      @tag_trigram_counts[trigram] += 1
+      counts[trigram] += 1
     end
+    counts
   end
 
-  def write
-    # dump all to a single file
-    raise "Not yet implemented"
+  def write(out=nil)
+    to_be_closed = false
+    case 
+    when out.nil?
+      out = STDOUT
+    when out.is_a?(String)
+      out = File.new(out, "w+")
+      to_be_closed = true
+    when out.is_a?(IO)
+      # ok
+    else
+      raise "Invalid object, should be IO"
+    end
+      
+    write_hash @tag_unigram_counts,      "TAG-1-GRAM",       out
+    write_hash @tag_bigram_counts,       "TAG-2-GRAM",       out
+    write_hash @tag_skip1_bigram_counts, "TAG-2-GRAM-GAP-1", out
+    write_hash @tag_trigram_counts,      "TAG-3-GRAM",       out
+    write_hash @word_tag_unigram_counts, "WORD-TAG-1-GRAM",  out
+
+    out.close  if to_be_closed
   end
 
   ##################################################################
   private
   ##################################################################
 
-  # in: "Ancient_JJ maya_NNS died_VBD ._."
-  # out: [["Ancient", "JJ"], ["maya", "NNS"], ["died", "VBD"], [".", "."]]
-  def tokenize tagged_sentence
-    if tagged_sentence.is_a? Array
-      tagged_sentence
-    else
-#    tokens = tagged_sentence.split.map {|tw| get_word_and_tag(tw)}
-      tagged_sentence.scan(/([^\s]+)_([^_\s]+)/)
+  def write_hash(hash, label, channel=STDOUT)
+    unless hash.empty?
+      hash.each do |key, val|
+        channel.puts "#{label}\t#{key}\t#{val}"
+      end
     end
   end
 
-#  def get_word_and_tag tw
-#    tw.scan(/(.+)_([^_]+)$/)
-#  end
+  # in: "Ancient_JJ maya_NNS died_VBD ._."
+  # out: [["Ancient", "JJ"], ["maya", "NNS"], ["died", "VBD"], [".", "."]]
+  def tokenize tagged_sentence
+    if tagged_sentence.is_a? WordTagArray
+      tagged_sentence
+    else
+      wts = tagged_sentence.scan(/([^\s]+)_([^_\s]+)/)
+      WordTagArray.new(wts) # TODO: this creates a copy of the original array
+    end
+  end
 
   def check_files_exist(fnames)
     fnames.each do |fname|
@@ -111,5 +145,8 @@ class CorpusCounts
         raise "File '#{fname}' not found. Aborting"
       end
     end
+  end
+
+  class WordTagArray < Array
   end
 end
