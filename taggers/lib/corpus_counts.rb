@@ -6,6 +6,9 @@ class CorpusCounts
   attr_accessor :tag_unigram_counts
   attr_accessor :tag_bigram_counts
   attr_accessor :tag_trigram_counts
+  attr_accessor :word_tag_unigram_counts
+  attr_accessor :tag_skip1_bigram_counts
+  attr_accessor :labels
 
   def initialize
     @tag_unigram_counts      = new_hash
@@ -16,6 +19,15 @@ class CorpusCounts
     @tag_trigram_counts      = new_hash
 
     @word_tag_unigram_counts = new_hash
+
+    @labels = {
+      # symbols on the left must correspond to hash names with counts
+      :tag_unigram_counts => "TAG-1-GRAM",
+      :tag_bigram_counts  => "TAG-2-GRAM",
+      :tag_trigram_counts => "TAG-3-GRAM",
+      :tag_skip1_bigram_counts => "TAG-1-GRAM-GAP-1",
+      :word_tag_unigram_counts => "WORD-TAG-1-GRAM"
+    }
   end
 
   def new_hash
@@ -37,8 +49,10 @@ class CorpusCounts
     end
   end
 
+  ##################################################################
   # expected input: one tagged sentence per line
   # ex: I_PP1SN love_VB apples_NNS ._.
+
   def learn_from_line line
     tokens = tokenize(line)
 
@@ -51,11 +65,19 @@ class CorpusCounts
     count_tag_bigrams       @tag_skip1_bigram_counts, tokens, gap=1
   end
 
+  def learn_from_lines lines
+    lines.each {|line| learn_from_line line}
+  end
+
+  ##################################################################
+
   def count_tag_unigrams counts, wts
     wts = tokenize(wts)
     wts.each {|w,t| counts[t] += 1}
     counts
   end
+
+  ##################################################################
 
   def count_word_tag_unigrams counts, wts
     wts = tokenize(wts)
@@ -63,20 +85,28 @@ class CorpusCounts
     counts
   end
 
+  ##################################################################
+
   def count_tag_bigrams counts, wts, gap=0
     wts = tokenize(wts)
     # extract tags only
     tags = wts.map {|w,t| t}
+
     # add fake start/end tags
     tags.unshift(START).push(STOP)
+    # TODO: shouldn't it be different artificial tokens?
+    gap.times { tags.unshift(START) }
+
 #    puts tags.inspect
     # collect bigrams or gappy bigrams
-    (0+gap).upto(tags.length-1) do |i|
+    (1+gap).upto(tags.length-1) do |i|
       bigram = tags[i-1-gap] + " " + tags[i]
       counts[bigram] += 1
     end
     counts
   end
+
+  ##################################################################
 
   def count_tag_trigrams counts, wts
     wts = tokenize(wts)
@@ -93,6 +123,9 @@ class CorpusCounts
     counts
   end
 
+  ##################################################################
+
+  # https://practicingruby.com/articles/shared/rvdcaomuyjzr
   def write(out=nil)
     to_be_closed = false
     case 
@@ -101,17 +134,21 @@ class CorpusCounts
     when out.is_a?(String)
       out = File.new(out, "w+")
       to_be_closed = true
-    when out.is_a?(IO)
+    when out.respond_to?(:write)
       # ok
     else
-      raise "Invalid object, should be IO"
+      raise "Invalid object #{out.class}, should be able to respond to :write"
     end
-      
-    write_hash @tag_unigram_counts,      "TAG-1-GRAM",       out
-    write_hash @tag_bigram_counts,       "TAG-2-GRAM",       out
-    write_hash @tag_skip1_bigram_counts, "TAG-2-GRAM-GAP-1", out
-    write_hash @tag_trigram_counts,      "TAG-3-GRAM",       out
-    write_hash @word_tag_unigram_counts, "WORD-TAG-1-GRAM",  out
+
+    @labels.each do |_hash, label|
+      hash = send(_hash)
+      unless hash.empty?
+        # this expands to lines like:
+        # write_hash @tag_unigram_counts,      "TAG-1-GRAM",       out
+        # write_hash @tag_bigram_counts,       "TAG-2-GRAM",       out
+        write_hash hash, label, out
+      end
+    end
 
     out.close  if to_be_closed
   end
@@ -131,8 +168,12 @@ class CorpusCounts
   # in: "Ancient_JJ maya_NNS died_VBD ._."
   # out: [["Ancient", "JJ"], ["maya", "NNS"], ["died", "VBD"], [".", "."]]
   def tokenize tagged_sentence
-    if tagged_sentence.is_a? WordTagArray
+    case
+    when tagged_sentence.is_a?(WordTagArray)
       tagged_sentence
+    when tagged_sentence.is_a?(Array)
+#      tagged_sentence.map {|ts| tokenize(ts) }
+      raise "Can not run for an Array of sentences"
     else
       wts = tagged_sentence.scan(/([^\s]+)_([^_\s]+)/)
       WordTagArray.new(wts) # TODO: this creates a copy of the original array
