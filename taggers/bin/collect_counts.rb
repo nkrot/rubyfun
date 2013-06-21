@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+# -*- coding: windows-1252; -*-
+#
 
 # # #
 #
@@ -19,21 +21,21 @@ OptionParser.new do |opts|
 USAGE: #{File.basename($0)} [OPTIONS] tagged_corpus_file(s)
 "
 
-  opts.on('--[no-]tag-unigram-counts', 'collect tag unigrams (TAG-1-GRAM)') do |val|
-    @options[:tag_unigrams] = val
-  end
+  # opts.on('--[no-]tag-unigram-counts', 'collect tag unigrams (TAG-1-GRAM)') do |val|
+  #   @options[:tag_unigrams] = val
+  # end
 
-  opts.on('--[no-]tag-bigram-counts', 'collect tag bigrams (TAG-2-GRAM)') do |val|
-    @options[:tag_bigrams] = val
-  end
+  # opts.on('--[no-]tag-bigram-counts', 'collect tag bigrams (TAG-2-GRAM)') do |val|
+  #   @options[:tag_bigrams] = val
+  # end
 
-  opts.on('--[no-]tag-trigram-counts', 'collect tag trigrams (TAG-3-GRAM)') do |val|
-    @options[:tag_trigrams] = val
-  end
+  # opts.on('--[no-]tag-trigram-counts', 'collect tag trigrams (TAG-3-GRAM)') do |val|
+  #   @options[:tag_trigrams] = val
+  # end
 
-  opts.on('--[no-]tag-skipping-bigram-counts', 'collect tag bigrams (TAG-2-GRAM-GAP-1)') do |val|
-    @options[:tag_bigrams] = val
-  end
+  # opts.on('--[no-]tag-skipping-bigram-counts', 'collect tag bigrams (TAG-2-GRAM-GAP-1)') do |val|
+  #   @options[:tag_bigrams] = val
+  # end
 
 end.parse!
 
@@ -41,12 +43,23 @@ end.parse!
 
 cc = CorpusCounts.new
 
-lines = [
-"Diese_DTFN Vorrichtung_NCFSN ist_VSPI3S deshalb_RD aufwendig_JP ._.",
-"Oben_RP wird_VWPI3S Benzin_NCNSN auf_APPA die_ATDFA Wand_NCFSA aufgebracht_VLPP ._."
-]
+#lines = [
+#"Diese_DTFN Vorrichtung_NCFSN ist_VSPI3S deshalb_RD aufwendig_JP ._.",
+#"Oben_RP wird_VWPI3S Benzin_NCNSN auf_APPA die_ATDFA Wand_NCFSA aufgebracht_VLPP ._."
+#]
 
-lines.each do |line|
+#lines.each do |line|
+#  cc.learn_from_line line
+#end
+
+while line = gets
+  line.chomp!
+  puts line
+
+  if line.empty? || line =~ /^#/
+    next
+  end
+
   cc.learn_from_line line
 end
 
