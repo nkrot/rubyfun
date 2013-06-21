@@ -128,7 +128,10 @@ describe CorpusCounts do
     begin
       @cc.write outfile
       outfile.rewind
-      puts outfile.read
+      lines = outfile.readlines
+      lines.grep(/GAP-1/).must_include "TAG-1-GRAM-GAP-1\t@START@ JJ\t2\n"
+      lines.grep(/TAG-3-GRAM/).must_include "TAG-3-GRAM\tRP . @STOP@\t1\n"
+      lines.grep(/WORD-TAG-1-GRAM/).must_include "WORD-TAG-1-GRAM\tmaya NNS\t2\n"
     ensure
       outfile.close!
     end
