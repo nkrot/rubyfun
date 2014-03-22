@@ -1,0 +1,83 @@
+#!/usr/bin/env ruby
+
+# # #
+# 
+# Given an array of both positive and negative numbers, find the subsequence
+# with the greatest sum.
+#
+# source: www.computersciencesalaryrange.com/dynamic-programming-tutorial/
+#
+
+# in the below array the answer is shown with {{ }}
+#   [ -2,  1,  -3,  {{4, -1,  2,  1}},  -5,  4]
+#
+# 1. the minimal subsequence length is 1 element
+#    -> any element per se can be a sequence with the greatest sum
+# 2. looking at each element, we have to decide what is best
+#      a) continuing the previous subsequence
+#      b) starting a new subsequence
+#    to do this, compare the sum_so_far+current_element with current_element
+#    and pick the max of the two.
+#
+# the . marks the local best choice, the * marks the global best choice
+#    -2 |  1 | -3 | 4 | -1 | 2 | 1 | -5 | 4
+#   =========================================
+#    -2.| -1 |    |   |    |   |   |    |
+#   -----------------------------------------
+#       |  1.| -2.| 2 |    |   |   |    |
+#   -----------------------------------------
+#       |    | -3 |   |    |   |   |    |
+#   -----------------------------------------
+#       |    |    | 4.|  3.| 5.| 6*| 1. | 5.
+#   -----------------------------------------
+#       |    |    |   | -1 |   |   |    |
+#   -----------------------------------------
+#       |    |    |   |  2 |   |   |    |
+#   -----------------------------------------
+#       |    |    |   |    |   | 1 |    |
+#   -----------------------------------------
+#       |    |    |   |    |   |   | -5 |
+#   -----------------------------------------
+#
+
+def find_subset_with_max_sum nums
+#  puts nums.inspect
+
+  max_i = min_i = 0
+  max_sum = sum = nums[max_i]
+
+  1.upto(nums.length-1) do |i|
+    # selective maximal of two:
+    #   max(sum+nums[i], nums[i])
+    if (sum > 0)
+      # the condition:
+      #   sum > 0
+      # is a simplified form of the complete:
+      #   sum + nums[i] > nums[i]
+      sum += nums[i]
+    else
+      sum = nums[i]
+      min_i = i
+    end
+    # alternatively, can be written as simple as:
+    # sum = [sum+nums[i],nums[i]].max
+
+    if sum >= max_sum  # NOTE: change >= to > and see [1,-5,1] testcase fail
+      max_sum = sum
+      max_i = i
+    end
+  end
+
+#  puts "[#{min_i}..#{max_i}]=#{nums[min_i..max_i]}"
+
+  nums[min_i..max_i]
+end
+
+puts find_subset_with_max_sum([-2,1,-3,  4,-1,2,1,  -5,4]) == [4,-1,2,1]
+
+puts find_subset_with_max_sum([5,4,1,2]) == [5,4,1,2]
+puts find_subset_with_max_sum([])        == []
+puts find_subset_with_max_sum([-5])      == [-5]
+puts find_subset_with_max_sum([-5,1])    == [1]
+puts find_subset_with_max_sum([1,-5,1])  == [1]
+

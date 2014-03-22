@@ -1,0 +1,30 @@
+source: www.computersciencesalaryrange.com/dynamic-programming-tutorial/
+
+as a study problem
+1) first implement the solution that outputs just the greatest sum
+   a) here can use the followng to select the max value
+        sum = [sum+nums[i], nums[i]].max
+
+   b) also explain that the condition:
+        sum > 0
+      is a simplified form of the complete:
+        sum + nums[i] > nums[i]
+      where the nums[i] was deleted from the two sides of the equation
+        sum > nums[i] - nums[i]
+        sum > 0
+
+   c) and use either of the following to select the new max_sum
+        max_sum = sum  if sum > max_sum
+        max_sum = [sum, max_sum].max
+
+2) then extend the first solution to outputting the subset of the array that sums to the greatest value
+   see script: max_sum_subset
+
+  2.1) the following testcase fails
+         > puts find_subset_with_max_sum([1,-5,1])  == [1]
+       if the line
+         > if sum >= max_sum
+       is replaced with
+         > if sum > max_sum
+       THEREFORE: comment out this testcase, use the latter if and let the students solve the issue themselves.
+
