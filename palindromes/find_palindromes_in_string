@@ -1,0 +1,82 @@
+#!/usr/bin/env ruby
+
+# # #
+# given a string,
+#  1) count the number of palindromes in it
+#  2) find the palindromes
+#
+# learnt from here:
+#  www.computersciencesalaryrange.com/dynamic-programming-tutorial/
+
+@debug = !true
+
+def verboser msg
+  if @debug
+    puts msg
+  end
+end
+
+######################################################################
+
+def palindrome_substring? str, left, right
+  verboser "Is #{left..right} \"#{str[left..right]}\" a palindrome?"
+  max_iter = (1+right-left) / 2
+  max_iter.times do |offset|
+    if str[left+offset] != str[right-offset]
+      return false
+    end
+  end
+  verboser " Yes"
+  return true
+end
+
+#def palindrome_substring? str, left, right
+#  if @indexed_word != str
+#    index_palindromes str
+#  end
+#end
+
+#def index_palindromes str
+#end
+
+######################################################################
+
+def count_palindromes str
+  # at each position the array contains the best (the lowest) number
+  # of palindromes that end at this position.
+  counts = [1] # the first character is a palindrome
+
+  1.upto(str.length-1) do |right|
+    # the worst case:
+    # when the current character does not form any palindromes with
+    # any preceeding adjacent substrings.
+    counts[right] = counts[right-1] + 1
+
+    # investigate all substrings that start between 0 and right
+    # and end at right and find out if any of them is a palindrome
+    0.upto(right-1) do |left|
+      if palindrome_substring?(str, left, right)
+        # decide which is better (which makes for less number of palindroms):
+        # - when the char at right is a palindrome itself
+        # - or when the char at right forms a palindrome with a left substring
+        #
+        # count_at_left is the best number of palindromes in the substring
+        # that starts at 0 and ends just before left
+        count_before_left = left > 0 ? counts[left-1] : 0
+        if count_before_left+1 < counts[right]
+          # there is a better string splitting:
+          #  str[0...left] and str[left..right]
+          counts[right] = count_before_left+1
+        end
+      end
+    end
+  end
+
+  verboser "Better splitting in palindromes consists of #{counts.last} chunks"
+
+  counts.last
+end
+
+puts count_palindromes("abaababa") == 2
+puts count_palindromes("abaaba") == 1
+puts count_palindromes("abcaba") == 4
