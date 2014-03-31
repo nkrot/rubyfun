@@ -30,15 +30,6 @@ def palindrome_substring? str, left, right
   return true
 end
 
-#def palindrome_substring? str, left, right
-#  if @indexed_word != str
-#    index_palindromes str
-#  end
-#end
-
-#def index_palindromes str
-#end
-
 ######################################################################
 
 def count_palindromes str
@@ -77,6 +68,83 @@ def count_palindromes str
   counts.last
 end
 
+######################################################################
+# instead of palindrome_substring? that is costly, we use a lookup
+# 2D table: palindromes[left][right]
+#      | A B A A B A B A
+#      | 0 1 2 3 4 5 6 7
+#  ----|------------------
+#  A 0 | t - t - - t - -
+#  B 1 |   t - - t - - -
+#  A 2 |     t t - - - -
+#  A 3 |       t - t - t
+#  B 4 |         t - t -
+#  A 5 |           t - t
+#  B 6 |             t -
+#  A 7 |               t
+# 
+# This table is not created as a separate task, but rather it is built
+# as the main count palindromes algorithm goes.
+# The key observation is that the string is a palindrome if
+#   1) its first char equals its last char
+#   2) and the inner part [1..-2] is also a palindrome
+#
+
+def count_palindromes_2 str
+
+  counts = [1]
+  palindromes = Array.new(str.length) { Array.new(str.length, false) }
+#  palindromes[0][0] = true # for purposes of getting a full & correct matrix only.
+
+  1.upto(str.length-1) do |right|
+    palindromes[right][right] = true # diagonal
+    counts[right] = counts[right-1] + 1 # worst case
+
+    (right-1).downto(0) do |left|
+      # why right-left <= 2
+      # 1) there is no palindrome between adjacent letters.
+      #    Looking up palindromes[left+1][right-1]) will fail in this case.
+      #    To avoid this failure, at least the following is necessary:
+      #      left+1 == right
+      # 2) [optimization] one letter per se is a palindrome, therefore do not need to additionally
+      #    check if it is a palindrome using the palindromes[][] matrix.
+      #    Otherwise left+1 == right would work fine.
+      if str[left] == str[right] && (right-left <= 1 || palindromes[left+1][right-1])
+        palindromes[left][right] = true
+
+        # select better splitting
+        count_before_left = left > 0 ? counts[left-1] : 0
+        if count_before_left+1 < counts[right]
+          counts[right] = count_before_left+1
+        end
+      end
+    end
+  end
+
+#  show_matrix(palindromes)
+
+  counts.last
+end
+
+######################################################################
+
+def show_matrix m
+  s = ''
+  m.each do |row|
+    s << row.map { |el| el ? 't' : '-' }.join(' ') << "\n"
+  end
+  puts s
+end
+
+######################################################################
+# tests
+
 puts count_palindromes("abaababa") == 2
-puts count_palindromes("abaaba") == 1
-puts count_palindromes("abcaba") == 4
+puts count_palindromes("abaaba")   == 1
+puts count_palindromes("abcaba")   == 4
+
+puts "Another algorithm"
+
+puts count_palindromes_2("abaababa") == 2
+puts count_palindromes_2("abaaba")   == 1
+puts count_palindromes_2("abcaba")   == 4
