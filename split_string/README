@@ -1,0 +1,8 @@
+Produce all possible splittings of the given string into known words, like
+	godisnowhere => god is nowhere, god is now here
+
+Dynamic programming algorithm:
+- fill the matrix marking know words
+- retrieve all complete splittings using a recursion
+
+

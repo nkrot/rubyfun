@@ -1,0 +1,143 @@
+#!/usr/bin/env ruby
+# -*- coding: windows-1251; -*-
+
+# # #
+#
+#
+
+@debug = true
+
+def verboser *msgs
+  if @debug
+    puts msgs.join("\n")
+  end
+end
+
+if !true
+  word = 'невозможность'
+#  word = 'невозможно'
+
+  @dict = [
+         'не', 'невозможно', 'невозможность',
+         'в', 'воз', 'возможность',
+         'о',
+         'можно',
+         'ж',
+         'но', 'нос',
+         'c'
+  ]
+
+  @dict += ('а'..'я').to_a
+  puts @dict.join(' ')
+
+else
+  word = 'godisnowhere'
+  @dict = ['god', 'is', 'nowhere', 'now', 'here']
+#  @dict += ('a'..'z').to_a
+end
+
+def in_dict? word
+  @dict.include?(word)
+end
+
+######################################################################
+
+def init_matrix num
+  Array.new(num) { Array.new(num, false) }
+end
+
+def inspect_matrix mat, labels=[]
+  lines = []
+  mat.each_with_index do |row, i|
+    cells = row.map.each_with_index { |v, j|
+      if j < i
+        '#'
+      elsif v
+        '+'
+      else
+        '.'
+      end
+    }
+    cells.unshift labels[i] + ' ' + i.to_s.rjust(2)
+    lines << " " + cells.join(' | ')
+  end
+
+  # add header
+  lines.unshift "-" * (lines[0].length+1)
+  numbers = [' '*6] + [*0...labels.length].map { |i| i.to_s.center(3)}
+  lines.unshift numbers.join('|')
+  lines.unshift ([' '*5] + labels).join(' | ')
+
+  lines.join("\n")
+end
+
+######################################################################
+
+def split_string str
+  verboser "Gonna split the string '#{str}'"
+  splittings = []
+
+  matrix = init_matrix str.length
+#  inspect_matrix matrix, str.split('')
+
+  # fill in the matrix storing true in the cell that correspond to
+  # the *end* of an identified word.
+  0.upto(str.length-1) do |f|
+    f.upto(str.length-1) do |l|
+      if in_dict?(str[f..l])
+        matrix[f][l] = true
+      end
+    end
+  end
+
+  verboser "Matrix with known words marked", inspect_matrix(matrix, str.split(''))
+
+  # Collect splittings that span the whole word.
+  chunks = find_splitting_ending_at(matrix, str.length-1)
+
+  # convert offsets to text
+  chunks.each do |offsets|
+    verboser "A splitting as array of offsets [start,end]: " + offsets.inspect
+    splittings << offsets.map { |s,e| str[s..e] }.join(' ')
+    verboser "Offsets converted to real substrings: " + splittings.last
+  end
+
+  verboser "all splittings (#{splittings.size} items): " + splittings.join(" | ")
+
+  splittings
+end
+
+######################################################################
+# Collect splittings that span the string from the very beginning to
+# the very end of the string.
+# Each splitting is represented as an array of offsets of the subwords:
+#  [[0, 1], [2, 4], [5, 9]]
+#
+# Return:
+#  Array of such splittings
+
+def find_splitting_ending_at(mat, j)
+  splittings = []
+
+  if j < 0
+    splittings << []
+  else
+    mat.each_with_index do |row, i|
+      if row[j]
+        # if there is a word that ends at the position j,
+        # find all splittings of the prefix (substring *before* this word),
+        # and add this word to each of the prefix splittings.
+        find_splitting_ending_at(mat, i-1).each do |pref_splitting|
+          splittings << (pref_splitting.dup << [i,j])
+        end
+      end
+    end
+  end
+
+  splittings
+end
+
+######################################################################
+
+split_string word
+
