@@ -1,0 +1,149 @@
+#!/usr/bin/env ruby
+
+# # #
+# TODO: find all solutions
+#
+
+@debug_placing_a_queen = !true
+@monospace = !true
+
+@representations = {
+  true  => "Q", # queen is here
+  false => "_", # a square is under attack (no queen is allowed here)
+  nil   => "."  # undecided yet
+}
+
+def show_board brd, msg=nil
+  msg ||= "showing the board"
+  puts "***** #{msg} *****"
+  lines = []
+  brd.each_slice(8) do |row|
+    if @monospace
+      lines << "|" + row.map { |v| @representations[v] }.join("|") + "|"
+    else
+      lines << "| " + row.map { |v| @representations[v] }.join(" | ") + " |"
+    end
+  end
+  puts lines.join("\n")
+end
+
+######################################################################
+# mark the square as attacked if there is not queen there
+# Return
+#  true   is the square is allowed to be attacked
+#  false  otherwise
+
+def attack brd, idx
+  if brd[idx].nil?
+    brd[idx] = false
+  end
+
+  return !brd[idx]
+end
+
+######################################################################
+# mark all squares attackable by the new queens
+# Return
+#  true if it is legal to place the queen at the requested position
+#  false otherwise
+
+def mark_attacked_squares brd, idx
+
+  col_id = idx % 8
+
+  # mark column
+  col_id.step(63, 8) { |i| attack(brd, i) or return false } # || does not work here
+
+  # mark row
+  fst = idx-col_id # id of first square in the current row
+  fst.upto(fst+7) { |i| attack(brd, i) or return false }
+
+  # mark diagonal along the main (primary) diagonal
+  s = idx - 9 * [  idx%8,   idx/8].min
+  e = idx + 9 * [7-idx%8, 7-idx/8].min
+  s.step(e, 9) { |i| attack(brd, i) or return false }
+
+  # mark the diagonal along the secondary diagonal
+  s = idx - 7 * [7-idx%8,   idx/8].min
+  e = idx + 7 * [  idx%8, 7-idx/8].min
+  s.step(e, 7) {|i| attack(brd, i) or return false }
+
+  # mark diagonal along the secondary diagonal
+  if false # correct but want to make it shorter, see above
+    # why #times is not suitable here:
+    #  5.times generates 0..4 and have to add 1 to get to 5
+    #  0.times generates 0 which is not what we want (we want no iterations in this case)
+
+    c_steps = [7-idx%8, idx/8].min
+    puts "Steps backward #{c_steps}"
+    (1..c_steps).each {|i| brd[idx-7*i] = false }
+
+    c_steps = [idx%8, 7-idx/8].min
+    puts "Steps forward #{c_steps}"
+    (1..c_steps).each {|i| brd[idx+7*i] = false }
+  end
+
+  true
+end
+
+######################################################################
+
+def place_queen_at brd, idx
+  if mark_attacked_squares(brd, idx)
+    brd[idx] = true # place a queen here
+    show_board brd   if @debug_placing_a_queen
+  else
+    brd = nil
+  end
+  brd
+end
+
+if @debug_placing_a_queen
+  # see output in files rows.out, columns.out, prim_diagonals.out, sec_diagonals.out
+  # and mark_attacked_squares.out
+
+  0.upto(63) do |square|
+    board = Array.new(8*8, nil)
+    place_queen_at(board, square)
+  end
+
+  exit 100
+end
+
+######################################################################
+
+def add_new_queen brd
+
+  if brd.count(true) == 8
+    # solved!
+    return brd
+
+  else
+    new_brd = solved_brd = nil
+
+    # in the worst case we will need to try all undecided squares
+    brd.each_with_index do |val, idx|
+      if val.nil? # vacant square
+        new_brd = place_queen_at(brd.dup, idx)
+        if new_brd # a partial solution is ready!
+          solved_brd = add_new_queen(new_brd)
+          break  if solved_brd
+        end
+      end
+    end
+
+    return solved_brd
+  end
+end
+
+######################################################################
+# main
+
+board = Array.new(8*8, nil)
+
+show_board board, "initial state of the board"
+
+solved = add_new_queen board
+
+show_board solved, "solved board"
+
